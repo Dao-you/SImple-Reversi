@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>黑白棋</title>
+  <style>
+    /* CSS 樣式，將矩陣置中 */
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 79vh;
+      max-height: 1000px;
+    }
+    .nowcontainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 15vh;
+      max-height: 500 px;
+    }
+
+    .button {
+      width: 40px;
+      height: 40px;
+      margin: 5px;
+      background-color: #b3b3b3;
+      border: 1px solid #666666;
+      border-radius: 5px;
+    }
+    .unavailable:hover {
+        background-color: #b35959;
+    }
+    .available {
+        background-color: #e9edc9;
+    }
+    .available:hover {
+        background-color: #b5d46b;
+    }
+    .available:active {
+        background-color: #5f8019;
+    }
+    .white {
+        background-color: #ffffff;
+        border-radius: 40px;
+    }
+    .black {
+        background-color: #000000;
+        border-radius: 40px;
+    }
+    .now {
+      width: 55px;
+      height: 55px;
+      border-radius: 55px;
+      background-color: #000000;
+    }
+  </style>
+</head>
+
+
+<body>
+  <div class="container">
+    <div id="matrix">
+      <!-- 使用 JavaScript 來生成按鈕矩陣 -->
+    </div>
+  </div>
+  <div class="nowcontainer">
+    <button class="button now"></button>
+  </div>  
+
+  <script>
+    function sendRequest(buttonId) {
+      var button = document.getElementById(buttonId);
+      if (button.classList.contains("available")) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", window.location.href, true);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+            var response = JSON.parse(xhr.responseText);
+            whiter(response.white);
+            blacker(response.black);
+            avalibler(response.avalible);
+
+            const buttons = document.querySelectorAll('.button.now');
+            if (response.flag == 1){
+              buttons.forEach(button => {
+                button.style.backgroundColor = '#ffffff';
+              });
+            }
+            if (response.flag == -1){
+              buttons.forEach(button => {
+                button.style.backgroundColor = '#000000';
+              });
+            }
+
+            if(response.stat != 'continue') {
+              alert(response.stat)
+              location.reload()
+            }
+          }
+        };
+        var data = JSON.stringify({ buttonId: buttonId });
+        xhr.send(data);
+      }
+    }
+
+
+    function avalibler(coordinatesToChange) {
+
+      var elements = document.getElementsByTagName("*");
+      for (var i = 0; i < elements.length; i++) {
+          if (elements[i].className == "button available") {
+              elements[i].className = "button unavailable";
+          }
+      }
+
+      for (var i = 0; i < coordinatesToChange.length; i++) {
+        var coordinates = coordinatesToChange[i];
+        var row = coordinates[0];
+        var col = coordinates[1];
+        var buttonId = "button-" + row + "-" + col;
+        var button = document.getElementById(buttonId);
+        if (button) {
+          button.className = "button available";
+          button.onclick = function() {
+            sendRequest(this.id);
+          };
+        }
+      }
+    }
+
+    function whiter(white) {
+      for (var i = 0; i < white.length; i++) {
+        var coordinates = white[i];
+        var row = coordinates[0];
+        var col = coordinates[1];
+        var buttonId = "button-" + row + "-" + col;
+        var button = document.getElementById(buttonId);
+        if (button) {
+          button.className = "button white";
+        }
+      }
+    }
+
+    function blacker(black) {
+      for (var i = 0; i < black.length; i++) {
+        var coordinates = black[i];
+        var row = coordinates[0];
+        var col = coordinates[1];
+        var buttonId = "button-" + row + "-" + col;
+        var button = document.getElementById(buttonId);
+        if (button) {
+          button.className = "button black";
+        }
+      }
+    }
+
+    // JavaScript 代碼，生成按鈕矩陣
+    var matrixContainer = document.getElementById("matrix");
+    for (var i = 0; i < 8; i++) {
+      for (var j = 0; j < 8; j++) {
+        var button = document.createElement("button");
+        button.className = "button unavailable";
+        button.id = "button-" + i + "-" + j;
+        matrixContainer.appendChild(button);
+      }
+      matrixContainer.appendChild(document.createElement("br"));
+    }
+
+    // 可用按鈕初始化
+    var init_avalible = [ [2, 3], [3, 2], [4, 5], [5, 4] ];
+    avalibler(init_avalible);
+
+    // 白色初始化
+    var init_white = [ [3, 3], [4, 4] ];
+    whiter(init_white);
+
+    // 黑色初始化
+    var init_black = [ [3, 4], [4, 3] ];
+    blacker(init_black);
+
+  </script>
+</body>
+</html>
